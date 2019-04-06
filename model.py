@@ -21,6 +21,8 @@ class User(db.Model):
     phone = db.Column(db.String(20), unique=True, nullable=True)
     password = db.Column(db.String(20), unique=True, nullable=False)
 
+    jobs = db.relationship('jobs', back_populates = 'user')
+
     def __repr__(self):
         return f'<username: {self.username}, phone: {self.phone}>'
 
@@ -39,7 +41,7 @@ class Job(db.Model):
     created = db.Column(db.DateTime(), default=datetime.utcnow)
     updated = db.Column(db.DateTime(), default=datetime.utcnow)
 
-    jobs = db.relationship('Job', back_populates='users')
+    user = db.relationship('users', back_populates = 'jobs')
 
     def __repr__(self):
         return f'<username: {users.username}, job_id: {self.id}, active: {self.active}>'
@@ -55,7 +57,7 @@ class Send(db.Model):
     created = db.Column(db.DateTime(), default=datetime.utcnow)
     updated = db.Column(db.DateTime(), default=datetime.utcnow)
 
-    jobs = db.relationship('Send', back_populates='users')
+    sent = db.relationship('Send', back_populates='users')
 
     def __repr__(self):
         return f'<active: {self.active}>'
