@@ -44,33 +44,38 @@ class Job(db.Model):
     updated = db.Column(db.DateTime(), default=datetime.utcnow)
 
     user = db.relationship('users', back_populates = 'jobs')
+    events = db.relationships('sent', back_populates = 'jobs')
+
 
     def __repr__(self):
-        return f'<username: {users.username}, job_id: {self.id}, active: {self.active}>'
+        return f'<username: {self.users.username}, job_id: {self.id}, active: {self.active}>'
 
 
-class Send(db.Model):
+class Sent(db.Model):
 
-    __tablename__ = 'send_log'
+    __tablename__ = 'sent'
 
     id = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, ForeignKey('job.id'))
-    dste_added = db.Column(db.DateTime(), default=datetime.utcnow)
+    date_added = db.Column(db.DateTime(), default=datetime.utcnow)
 
+    job = db.relationship('jobs', back_populates = 'sent')
+    reply = db.relationship('received', back_populates = 'sent')
 
     def __repr__(self):
         return f'<active: {self.active}, created: {self.created}>'
 
 
-class Receive():
+class Received():
 
-    __tablename__: 'receive_log'
+    __tablename__: 'received'
 
     id = db.Column(db.Integer, primary_key=True)
-    send_log_id = db.Column(db.Integer, ForeignKey('send_log.id'))
+    sent_id = db.Column(db.Integer, ForeignKey('sent_log.id'))
     msg_txt = db.Column(db.String(80), nullable=True)
     date_added = db.Column(db.DateTime(), default=datetime.utcnow)
 
+    event = db.relationship('sent', back_populates = 'received')
 
     def __repr__(self):
         return f'<username: {users.username}, msg_txt: {self.msg_txt}>'
