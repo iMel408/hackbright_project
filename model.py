@@ -20,6 +20,8 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     phone = db.Column(db.String(20), unique=True, nullable=True)
     password = db.Column(db.String(20), unique=True, nullable=False)
+    created = db.Column(db.DateTime(), default=datetime.utcnow)
+    updated = db.Column(db.DateTime(), default=datetime.utcnow)
 
     jobs = db.relationship('jobs', back_populates = 'user')
 
@@ -35,9 +37,9 @@ class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, ForeignKey('users.id'))
     active = db.Column(db.Boolean, default=False)
+    msg_txt = db.Column(db.String(50), nullable=False)
     frequency = db.Column(db.String, nullable=False, default='day')
     run_time = db.Column(db.String, nullable=False, default='12:00')
-    activated = db.Column(db.DateTime(), default='0000-00-00 00:00:00')
     created = db.Column(db.DateTime(), default=datetime.utcnow)
     updated = db.Column(db.DateTime(), default=datetime.utcnow)
 
@@ -53,24 +55,21 @@ class Send(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, ForeignKey('job.id'))
-    active = db.Column(db.Boolean, default=False)
-    created = db.Column(db.DateTime(), default=datetime.utcnow)
-    updated = db.Column(db.DateTime(), default=datetime.utcnow)
+    dste_added = db.Column(db.DateTime(), default=datetime.utcnow)
 
-    sent = db.relationship('Send', back_populates='users')
 
     def __repr__(self):
-        return f'<active: {self.active}>'
+        return f'<active: {self.active}, created: {self.created}>'
 
 
-class Received():
+class Receive():
 
-    __tablename__: 'received_log'
+    __tablename__: 'receive_log'
 
     id = db.Column(db.Integer, primary_key=True)
     send_log_id = db.Column(db.Integer, ForeignKey('send_log.id'))
     msg_txt = db.Column(db.String(80), nullable=True)
-    received = db.Column(db.DateTime(), default=datetime.utcnow)
+    date_added = db.Column(db.DateTime(), default=datetime.utcnow)
 
 
     def __repr__(self):

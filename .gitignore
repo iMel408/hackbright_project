@@ -2,3 +2,4 @@
 *.db
 env.conf
 env/
+.DS_Store
