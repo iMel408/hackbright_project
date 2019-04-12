@@ -1,5 +1,5 @@
 import os
-from env import LOGIN, PASSWORD
+import env
 from flask import Flask
 from twilio.twiml.messaging_response import MessagingResponse
 
@@ -10,19 +10,26 @@ app.config.from_object(__name__)
 
 senders = {
     # "+123456789101": "Melissa",
-    os.environ['ADMIN']: "Admin",
+    "os.environ[env.ADMIN_PHONE]": "Melissa",
 }
 
-@app.route("/sms", methods=['GET', 'POST'])
+@app.route("/incoming", methods=['GET', 'POST'])
 def sms_reply():
     """Respond to incoming messages with a friendly SMS."""
     # Start our response
     resp = MessagingResponse()
 
     # Add a message
-    resp.message("Thanks! [Melissa - testing response to incoming SMS.]")
+    resp.message("Your response has been logged.")
 
     return str(resp)
+
+    from_number = request.values.get('From')
+    # if from_number in senders:
+    #     name = senders[from_number]
+    # else:
+    #     name = "Friend"
+
 
 if __name__ == "__main__":
     app.run(debug=True)

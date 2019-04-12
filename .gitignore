@@ -3,3 +3,5 @@
 env.conf
 env/
 .DS_Store
+model_old.py
+send_sms.py
