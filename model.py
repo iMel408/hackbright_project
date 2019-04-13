@@ -6,13 +6,8 @@ from twilio.rest import Client
 from flask_sqlalchemy import SQLAlchemy
 import env
 
-app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///textstoself'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-app.secret_key = env.SECRET_KEY
-
-db = SQLAlchemy(app)
+db = SQLAlchemy()
 
 
 class User(db.Model):
@@ -94,7 +89,20 @@ class Task(db.Model):
         return message.sid
 
 
+def connect_to_db(app):
+    """Connect the database to app."""
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///textstoself'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+    db.app = app
+    db.init_app(app)
+
+
 if __name__ == '__main__':
+
+    from server import app
+    connect_to_db(app)
+    print("Connected to DB.")
 
 
     db.drop_all()
@@ -106,9 +114,6 @@ if __name__ == '__main__':
     db.session.add(melissa)
     db.session.add(melissa_job)
     db.session.commit()
-
-
-
 
 
 

@@ -11,8 +11,6 @@ from model import connect_to_db, db, User, Job, Task
 
 app = Flask(__name__)
 app.config.from_object(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///textstoself'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.secret_key = env.SECRET_KEY
 
 
