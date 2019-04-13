@@ -45,7 +45,6 @@ class Job(db.Model):
     __tablename__ = 'jobs'
 
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(10))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     active = db.Column(db.Boolean, default=False)
     msg_txt = db.Column(db.String(160))
@@ -68,6 +67,7 @@ class Event(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'))
+    type = db.Column(db.String(10))
     phone_num = db.Column(db.String(20), db.ForeignKey('users.phone'), unique=True)
     msg_txt = db.Column(db.String(80), nullable=True)
     date_added = db.Column(db.DateTime(), default=datetime.utcnow)
@@ -77,6 +77,7 @@ class Event(db.Model):
 
     def __init__(self, job_id):
         self.job_id = job_id
+        self.type = type
         self.phone_num = phone_num
         self.msg_txt = msg_txt
 
@@ -100,7 +101,7 @@ if __name__ == '__main__':
     db.create_all()
 
     melissa = User(username=env.USERNAME, phone=env.ADMIN_PHONE, password=env.PASSWORD)
-    melissa_job = Job(user_id=1, type='outgoing', active=False, msg_txt=env.MSG)
+    melissa_job = Job(user_id=1, active=False, msg_txt=env.MSG)
 
     db.session.add(melissa)
     db.session.add(melissa_job)
