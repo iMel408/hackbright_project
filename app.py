@@ -25,10 +25,6 @@ def sms_reply():
     return str(resp)
 
     from_number = request.values.get('From')
-    # if from_number in senders:
-    #     name = senders[from_number]
-    # else:
-    #     name = "Friend"
 
 
 if __name__ == "__main__":

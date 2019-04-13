@@ -28,7 +28,7 @@ class User(db.Model):
     updated = db.Column(db.DateTime(), default=datetime.utcnow)
 
     job = db.relationship('Job', back_populates='user')
-    data_points = db.relationship('Event', back_populates='user')
+    data_points = db.relationship('Task', back_populates='user')
 
     def __init__(self, username, password, phone=None):
         self.username = username
@@ -40,7 +40,7 @@ class User(db.Model):
 
 
 class Job(db.Model):
-    """ create/schedule a job associated with a user """
+    """ setup/schedule a job associated with a user """
 
     __tablename__ = 'jobs'
 
@@ -54,31 +54,31 @@ class Job(db.Model):
     updated = db.Column(db.DateTime(), default=datetime.utcnow)
 
     user = db.relationship('User', back_populates='job')
-    events = db.relationship('Event', back_populates = 'job')
+    tasks = db.relationship('Task', back_populates = 'job')
 
     def __repr__(self):
         return f'<User Name: {self.user.username}, Job ID: {self.id}, Active: {self.active}>'
 
 
-class Event(db.Model):
-    """ log of  sent messages """
+class Task(db.Model):
+    """ run and log an instance of a job """
 
-    __tablename__ = 'events'
+    __tablename__ = 'tasks'
 
     id = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'))
     type = db.Column(db.String(10))
-    phone_num = db.Column(db.String(20), db.ForeignKey('users.phone'), unique=True)
+    user_phone = db.Column(db.String(20), db.ForeignKey('users.phone'))
     msg_txt = db.Column(db.String(80), nullable=True)
     date_added = db.Column(db.DateTime(), default=datetime.utcnow)
 
     user = db.relationship('User', back_populates='data_points')
-    job = db.relationship('Job', back_populates='events')
+    job = db.relationship('Job', back_populates='tasks')
 
     def __init__(self, job_id):
         self.job_id = job_id
         self.type = type
-        self.phone_num = phone_num
+        self.user_phone = user_phone
         self.msg_txt = msg_txt
 
     def __repr__(self):
@@ -101,7 +101,7 @@ if __name__ == '__main__':
     db.create_all()
 
     melissa = User(username=env.USERNAME, phone=env.ADMIN_PHONE, password=env.PASSWORD)
-    melissa_job = Job(user_id=1, active=False, msg_txt=env.MSG)
+    melissa_job = Job(user_id=1 , active=False, msg_txt=env.MSG)
 
     db.session.add(melissa)
     db.session.add(melissa_job)
