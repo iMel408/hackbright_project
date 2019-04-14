@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+
+  <h2>User Profile: {{ user.username }}</h2>
+
+  Phone: {{ user.phone }} <br/>
+  Account Created {{ created }}
+
+  <h3>Job:</h3>
+  {% for rating in user.ratings %}
+  
+  <ul>
+    <li>{{ job.id }} : {{ job.active }} : <b>{{ job.created }}</b> </li>
+  </ul>
+
+  {% endfor %}
+
+<h3>Events:</h3>
+  {% for data_point in user.data_points %}
+  
+  <ul>
+    <li>{{ data_points.type }} : {{ data_points.type }} : {{ data_points.msg_txt }} </li>
+  </ul>
+
+  {% endfor %}
+
+
+{% endblock %}

@@ -23,7 +23,7 @@ class User(db.Model):
     updated = db.Column(db.DateTime(), default=datetime.utcnow)
 
     job = db.relationship('Job', back_populates='user')
-    data_points = db.relationship('Task', back_populates='user')
+    data_points = db.relationship('Event', back_populates='user')
 
     def __init__(self, username, password, phone=None):
         self.username = username
@@ -49,51 +49,57 @@ class Job(db.Model):
     updated = db.Column(db.DateTime(), default=datetime.utcnow)
 
     user = db.relationship('User', back_populates='job')
-    tasks = db.relationship('Task', back_populates = 'job')
+    events = db.relationship('Event', back_populates = 'job')
 
     def __repr__(self):
         return f'<User Name: {self.user.username}, Job ID: {self.id}, Active: {self.active}>'
 
 
-class Task(db.Model):
+class Event(db.Model):
     """ run and log an instance of a job """
 
-    __tablename__ = 'tasks'
+    __tablename__ = 'events'
 
     id = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'))
-    type = db.Column(db.String(10))
     user_phone = db.Column(db.String(20), db.ForeignKey('users.phone'))
+    msg_type = db.Column(db.String(20))
     msg_txt = db.Column(db.String(80), nullable=True)
+    msg_sid = db.Column(db.String(120), nullable=True)
+    status = db.Column(db.String(80), nullable=True)
     date_added = db.Column(db.DateTime(), default=datetime.utcnow)
 
     user = db.relationship('User', back_populates='data_points')
-    job = db.relationship('Job', back_populates='tasks')
+    job = db.relationship('Job', back_populates='events')
 
-    def __init__(self, job_id):
-        self.job_id = job_id
-        self.type = type
-        self.user_phone = user_phone
-        self.msg_txt = msg_txt
+    # def __init__(self, job_id):
+    #     self.job_id = job_id
+    #     self.user_phone = user_phone
+    #     self.msg_type = msg_type
+    #     self.msg_txt = msg_txt
+    #     self.msg_sid = msg_sid
+    #     self.status = status
+    #     self.err_cd = err_cd
+    #     self.err_msg = err_msg
 
     def __repr__(self):
         return f'<User Name: {self.users.username}, Phone #: {self.phone_num}, Msg Text: {self.msg_txt}>'
 
 
-    def send_sms(message, to_phone=env.ADMIN_PHONE):
-        message = CLIENT.messages.create(
-            from_=env.FROM_PHONE,
-            to=to_phone,
-            body=message,
-        )
-        return message.sid
+    # def send_sms(message, to_phone=env.ADMIN_PHONE):
+    #     message = CLIENT.messages.create(
+    #         from_=env.FROM_PHONE,
+    #         to=to_phone,
+    #         body=message,
+    #     )
+    #     return message.sid
 
 
 def connect_to_db(app):
     """Connect the database to app."""
 
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///textstoself'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.app = app
     db.init_app(app)
 

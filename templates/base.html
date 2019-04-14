@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+  <title> Texts to Self</title>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul class=flashes>
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+</head>
+
+<body>
+  User Page
+  <hr>
+
+  {% block content %} put your content here {% endblock %}
+  <br/>
+  <a href="/logout">Logout</a>
+</body>
+</html>

@@ -5,3 +5,4 @@ env/
 .DS_Store
 model_old.py
 send_sms.py
+__pychache__

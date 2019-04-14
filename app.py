@@ -22,17 +22,24 @@ senders = {
 }
 
 @app.route("/incoming", methods=['GET', 'POST'])
-def sms_reply():
+def receive_reply():
     """Respond to incoming messages with a friendly SMS."""
     # Start our response
     resp = MessagingResponse()
 
-    # Add a message
+    user_phone = request.values.get('From')
+    msg_txt = request.values.get('Body')
+
+    new_reply = Event(type='incoming', user_phone=user_phone, msg_txt=msg_txt)
+
+    db.session.add(new_reply)
+    db.commit()
+        # Add a message
     resp.message("Your response has been logged.")
 
     return str(resp)
 
-    user_phone = request.values.get('From')
+
 
 
 if __name__ == "__main__":
