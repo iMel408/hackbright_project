@@ -1,6 +1,6 @@
 import sys
 import os
-from datetime import datetime
+from datetime import datetime, date
 from flask import Flask
 from twilio.rest import Client
 from flask_sqlalchemy import SQLAlchemy
@@ -64,10 +64,11 @@ class Event(db.Model):
     job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'))
     user_phone = db.Column(db.String(20), db.ForeignKey('users.phone'))
     msg_type = db.Column(db.String(20))
-    msg_txt = db.Column(db.String(80), nullable=True)
+    msg_body = db.Column(db.String(80), nullable=True)
     msg_sid = db.Column(db.String(120), nullable=True)
-    status = db.Column(db.String(80), nullable=True)
-    date_added = db.Column(db.DateTime(), default=datetime.utcnow)
+    msg_status = db.Column(db.String(80), nullable=True)
+    date_added = db.Column(db.Date(), default=datetime.now)
+    date_updated = db.Column(db.DateTime(), default=datetime.utcnow)
 
     user = db.relationship('User', back_populates='data_points')
     job = db.relationship('Job', back_populates='events')
@@ -83,17 +84,7 @@ class Event(db.Model):
     #     self.err_msg = err_msg
 
     def __repr__(self):
-        return f'<User Name: {self.users.username}, Phone #: {self.phone_num}, Msg Text: {self.msg_txt}>'
-
-
-    # def send_sms(message, to_phone=env.ADMIN_PHONE):
-    #     message = CLIENT.messages.create(
-    #         from_=env.FROM_PHONE,
-    #         to=to_phone,
-    #         body=message,
-    #     )
-    #     return message.sid
-
+        return f'<User Name: {self.user.username}, Phone #: {self.phone_num}, Msg Text: {self.msg_txt}>'
 
 def connect_to_db(app):
     """Connect the database to app."""
@@ -104,7 +95,7 @@ def connect_to_db(app):
     db.init_app(app)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     from server import app
     connect_to_db(app)
@@ -115,7 +106,7 @@ if __name__ == '__main__':
     db.create_all()
 
     melissa = User(username=env.USERNAME, phone=env.ADMIN_PHONE, password=env.PASSWORD)
-    melissa_job = Job(user_id=1 , active=False, msg_txt=env.MSG)
+    melissa_job = Job(user_id=1, active=False, msg_txt=env.MSG)
 
     db.session.add(melissa)
     db.session.add(melissa_job)

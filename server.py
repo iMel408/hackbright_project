@@ -1,18 +1,27 @@
 import sys
 import os
 import env
-from flask import Flask, request, redirect
-from twilio import twiml
-from twilio.rest import Client
+from flask import Flask, render_template, request, redirect, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_sqlalchemy import SQLAlchemy
 from flask_debugtoolbar import DebugToolbarExtension
+from twilio import twiml
+from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 from model import connect_to_db, db, User, Job, Event
 
+from twilio.twiml.messaging_response import Body, Message, Redirect, MessagingResponse
+
+# response = MessagingResponse()
+# message = Message()
+# message.body('Hello World!')
+# response.append(message)
+# response.redirect('https://demo.twilio.com/welcome/sms/')
+
+# print(response)
 
 app = Flask(__name__)
-app.config.from_object(__name__)
+# app.config.from_object(__name__)
 app.secret_key = env.SECRET_KEY
 
 
@@ -38,25 +47,25 @@ def send_sms():
         body=env.MSG,
     )
 
-    msg_type = 'outbound'
-    user_phone = request.values.get('to')
-    msg_txt = request.values.get('body')
-    msg_sid = request.values.get('sid')
-    status = request.values.get('status')
-
-    new_prompt = Event(msg_type=msg_type,
-        user_phone=user_phone,
-        msg_txt=msg_txt,
-        msg_sid=msg_sid,
-        status=status
+    new_prompt = Event(msg_type='outbound',
+        user_phone=message.to,
+        msg_body=message.body,
+        msg_sid=message.sid,
+        msg_status=message.status
     )
 
-    db.session.add(new_prompt)
-    db.commit()
+    print('user_phone', message.to,
+        'msg_body', message.body,
+        'msg_sid', message.sid,
+        'msg_status', message.status)
 
-    print('SMS Sent')
 
-    return 0
+        db.session.add(new_prompt)
+    db.session.commit()
+
+    print(new_prompt)
+    print(message.to)
+
 
 
 @app.route("/incoming", methods=['GET', 'POST'])
@@ -65,20 +74,20 @@ def receive_reply():
 
     msg_type = 'inbound'
     user_phone = request.values.get('From')
-    msg_txt = request.values.get('Body')
+    msg_body = request.values.get('Body')
     msg_sid = request.values.get('MessageSid')
-    status = request.values.get('SmsStatus')
+    msg_status = request.values.get('SmsStatus')
 
     new_reply = Event(msg_type=msg_type,
         user_phone=user_phone,
-        msg_txt=msg_txt,
+        msg_body=msg_body,
         msg_sid=msg_sid,
-        status=status
+        msg_status=msg_status
     )
 
 
-    db.session.add(new_reply)
-    db.commit()
+        db.session.add(new_reply)
+    db.session.commit()
 
     resp = MessagingResponse()
     resp.message("Your response has been logged.")
@@ -90,12 +99,11 @@ def receive_reply():
 
 if __name__ == "__main__":
 
-    app.run(debug=True)
-
-    app.jinja_env.auto_reload = app.debug
+    app.debug = True
 
     connect_to_db(app)
 
     DebugToolbarExtension(app)
-    app.run(port=5000, host='0.0.0.0')
+
+    app.run(host='0.0.0.0')
 
