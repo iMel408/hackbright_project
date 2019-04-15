@@ -12,17 +12,18 @@ from model import connect_to_db, db, User, Job, Event
 
 from twilio.twiml.messaging_response import Body, Message, Redirect, MessagingResponse
 
-# response = MessagingResponse()
-# message = Message()
-# message.body('Hello World!')
-# response.append(message)
-# response.redirect('https://demo.twilio.com/welcome/sms/')
 
-# print(response)
+# def create_app():
+#     app = Flask(__name__)
+
+#     with app.app_context():
+#         init_db()
+
+#     return app
 
 app = Flask(__name__)
-# app.config.from_object(__name__)
 app.secret_key = env.SECRET_KEY
+
 
 
 # senders = {
@@ -40,32 +41,34 @@ app.secret_key = env.SECRET_KEY
 CLIENT = Client(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN)
 
 @app.route('/outgoing', methods=['GET', 'POST'])
-def send_sms():
-    message = CLIENT.messages.create(
-        from_=env.FROM_PHONE,
-        to=env.ADMIN_PHONE,
-        body=env.MSG,
-    )
+def send_sms(from_='env.FROM_PHONE',to='env.ADMIN_PHONE',body='env.MSG'):
 
-    new_prompt = Event(msg_type='outbound',
-        user_phone=message.to,
-        msg_body=message.body,
-        msg_sid=message.sid,
-        msg_status=message.status
-    )
+    with app.app_context():
+        db.init_app(app)
 
-    print('user_phone', message.to,
-        'msg_body', message.body,
-        'msg_sid', message.sid,
-        'msg_status', message.status)
+        message = CLIENT.messages.create(
+            from_=from_,
+            to=to,
+            body=body,
+        )
 
+        new_prompt = Event(msg_type='outbound',
+            user_phone=message.to,
+            msg_body=message.body,
+            msg_sid=message.sid,
+            msg_status=message.status
+        )
+
+        print('user_phone', message.to,
+            'msg_body', message.body,
+            'msg_sid', message.sid,
+            'msg_status', message.status
+        )
 
         db.session.add(new_prompt)
-    db.session.commit()
+        db.session.commit()
 
-    print(new_prompt)
-    print(message.to)
-
+    return 0
 
 
 @app.route("/incoming", methods=['GET', 'POST'])
@@ -86,7 +89,7 @@ def receive_reply():
     )
 
 
-        db.session.add(new_reply)
+    db.session.add(new_reply)
     db.session.commit()
 
     resp = MessagingResponse()

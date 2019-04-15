@@ -17,7 +17,7 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True,)
-    password = db.Column(db.String(20), unique=True,)
+    password = db.Column(db.String(20))
     phone = db.Column(db.String(20), unique=True)
     created = db.Column(db.DateTime(), default=datetime.utcnow)
     updated = db.Column(db.DateTime(), default=datetime.utcnow)
@@ -64,7 +64,7 @@ class Event(db.Model):
     job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'))
     user_phone = db.Column(db.String(20), db.ForeignKey('users.phone'))
     msg_type = db.Column(db.String(20))
-    msg_body = db.Column(db.String(80), nullable=True)
+    msg_body = db.Column(db.String(256), nullable=True)
     msg_sid = db.Column(db.String(120), nullable=True)
     msg_status = db.Column(db.String(80), nullable=True)
     date_added = db.Column(db.Date(), default=datetime.now)
@@ -84,7 +84,7 @@ class Event(db.Model):
     #     self.err_msg = err_msg
 
     def __repr__(self):
-        return f'<User Name: {self.user.username}, Phone #: {self.phone_num}, Msg Text: {self.msg_txt}>'
+        return f'<User Name: {self.user.username}, Phone #: {self.user_phone}, Msg Text: {self.msg_body}>'
 
 def connect_to_db(app):
     """Connect the database to app."""
