@@ -60,12 +60,11 @@ class Event(db.Model):
 
     __tablename__ = 'events'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(256), primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'))
     user_phone = db.Column(db.String(20), db.ForeignKey('users.phone'))
     msg_type = db.Column(db.String(20))
     msg_body = db.Column(db.String(256), nullable=True)
-    msg_sid = db.Column(db.String(120), nullable=True)
     msg_status = db.Column(db.String(80), nullable=True)
     date_added = db.Column(db.Date(), default=datetime.now)
     date_updated = db.Column(db.DateTime(), default=datetime.utcnow)
@@ -101,16 +100,14 @@ if __name__ == "__main__":
     connect_to_db(app)
     print("Connected to DB.")
 
-
-    db.drop_all()
     db.create_all()
 
-    melissa = User(username=env.USERNAME, phone=env.ADMIN_PHONE, password=env.PASSWORD)
-    melissa_job = Job(user_id=1, active=False, msg_txt=env.MSG)
+    # melissa = User(username=env.USERNAME, phone=env.ADMIN_PHONE, password=env.PASSWORD)
+    # melissa_job = Job(user_id=1, active=False, msg_txt=env.MSG)
 
-    db.session.add(melissa)
-    db.session.add(melissa_job)
-    db.session.commit()
+    # db.session.add(melissa)
+    # db.session.add(melissa_job)
+    # db.session.commit()
 
 
 
