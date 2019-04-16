@@ -9,32 +9,86 @@ from twilio import twiml
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 from model import connect_to_db, db, User, Job, Event
+from jinja2 import StrictUndefined
+from werkzeug.security import check_password_hash, generate_password_hash
+
 
 from twilio.twiml.messaging_response import Body, Message, Redirect, MessagingResponse
 
 
-# def create_app():
-#     app = Flask(__name__)
-
-#     with app.app_context():
-#         init_db()
-
-#     return app
-
 app = Flask(__name__)
 app.secret_key = env.SECRET_KEY
 
-# senders = {
-#     # "+123456789101": "Melissa",
-#     "os.environ[env.ADMIN_PHONE]": "Melissa",
-# }
 
-# @app.route('/user/<int:id>')
-# def user_page(id):
-#     """show user page/info"""
+@app.route('/')
+def index():
 
-#     user = User.query.get(id)
-#     return render_template('user_page.html',user=user)
+    return render_template('index.html')
+
+
+@app.route('/register', methods=['GET'])
+def reg_form():
+
+    return render_template('register.html')
+
+
+@app.route('/register', methods=['POST'])
+def reg_process():
+
+    username = request.form['username']
+    password = request.form['password']
+
+    new_user = User(username=username, password=password)
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    flash(f'User {username} added.')
+    return redirect('/login')
+
+
+@app.route('/login', methods=['GET'])
+def login_form():
+
+    return render_template('login.html')
+
+
+@app.route('/login', methods=['POST'])
+def login_process():
+
+    username = request.form['username']
+    password = request.form['password']
+
+    user = User.query.filter_by(username=username).first()
+
+    if not user:
+        flask("no such user")
+        return redirect('/login')
+
+    if user.password != password:
+        flash('incorrect password')
+        return redirect('/login')
+
+    session['id'] = user.id
+
+    flash('Logged In')
+    return redirect(f'/user/{user.id}')
+
+
+@app.route('/user/<int:id>')
+def user_page(id):
+    """show user page/info"""
+
+    user = User.query.get(id)
+
+    job = Job.query.filter_by(user=user).first()
+
+    if job:
+        events = Event.query.filter_by(job_id=job.id,msg_type='inbound').all()
+
+        return render_template('user.html',user=user,job=job,events=events)
+
+    return render_template('user.html',user=user)
 
 CLIENT = Client(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN)
 
@@ -47,27 +101,21 @@ def send_sms(from_, to, body=env.MSG):
         message = CLIENT.messages.create(
             from_=from_,
             to=to,
-            body=body,
+            body=body
         )
 
-        msg_sid=message.sid,
         msg_type='outbound',
+        msg_sid=message.sid,
         user_phone=message.to,
         msg_body=message.body,
         msg_status=message.status
 
-        new_prompt = Event(id=msg_sid,
-            msg_type=msg_type,
+        new_prompt = Event(msg_type=msg_type,
+            msg_sid=msg_sid,
             user_phone=user_phone,
             msg_body=msg_body,
             msg_status=msg_status
         )
-
-        # print('user_phone', message.to,
-        #     'msg_body', message.body,
-        #     'msg_sid', message.sid,
-        #     'msg_status', message.status
-        # )
 
         db.session.add(new_prompt)
         db.session.commit()
@@ -79,19 +127,18 @@ def send_sms(from_, to, body=env.MSG):
 def receive_reply():
     """Respond to incoming messages with a friendly SMS."""
 
-    msg_sid = request.values.get('MessageSid')
     msg_type = 'inbound'
+    msg_sid = request.values.get('MessageSid')
     user_phone = request.values.get('From')
     msg_body = request.values.get('Body')
     msg_status = request.values.get('SmsStatus')
 
-    new_reply = Event(id=msg_sid,
-        msg_type=msg_type,
+    new_reply = Event(msg_type=msg_type,
+        msg_sid=msg_sid,
         user_phone=user_phone,
         msg_body=msg_body,
         msg_status=msg_status
     )
-
 
     db.session.add(new_reply)
     db.session.commit()

@@ -16,22 +16,20 @@ class User(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True,)
+    username = db.Column(db.String(80), unique=True)
     password = db.Column(db.String(20))
-    phone = db.Column(db.String(20), unique=True)
     created = db.Column(db.DateTime(), default=datetime.utcnow)
     updated = db.Column(db.DateTime(), default=datetime.utcnow)
 
-    job = db.relationship('Job', back_populates='user')
-    data_points = db.relationship('Event', back_populates='user')
+    # job = db.relationship('Job', back_populates='user')
 
-    def __init__(self, username, password, phone=None):
-        self.username = username
-        self.password = password
-        self.phone = phone
+    # def __init__(self, username, password):
+    #     self.username = username
+    #     self.password = password
+ 
 
     def __repr__(self):
-        return f'<username: {self.username}, phone: {self.phone}>'
+        return f'<username: {self.username}>'
 
 
 class Job(db.Model):
@@ -42,14 +40,18 @@ class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     active = db.Column(db.Boolean, default=False)
+    phone = db.Column(db.String(20), unique=True, nullable=True)
     msg_txt = db.Column(db.String(160))
-    frequency = db.Column(db.String, default='day')
+    frequency = db.Column(db.String, default='daily')
     time = db.Column(db.String, default='12:00')
     created = db.Column(db.DateTime(), default=datetime.utcnow)
     updated = db.Column(db.DateTime(), default=datetime.utcnow)
 
-    user = db.relationship('User', back_populates='job')
-    events = db.relationship('Event', back_populates = 'job')
+    # user = db.relationship('User', back_populates='job')
+    # events = db.relationship('Event', back_populates = 'job')
+
+    user = db.relationship('User', backref=db.backref('jobs', order_by=id))
+    events = db.relationship('Event', backref=db.backref('jobs', order_by=id))
 
     def __repr__(self):
         return f'<User Name: {self.user.username}, Job ID: {self.id}, Active: {self.active}>'
@@ -60,36 +62,29 @@ class Event(db.Model):
 
     __tablename__ = 'events'
 
-    id = db.Column(db.String(256), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    msg_sid = db.Column(db.String(256))
     job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'))
-    user_phone = db.Column(db.String(20), db.ForeignKey('users.phone'))
+    user_phone = db.Column(db.String(20))
     msg_type = db.Column(db.String(20))
     msg_body = db.Column(db.String(256), nullable=True)
-    msg_status = db.Column(db.String(80), nullable=True)
+    msg_status = db.Column(db.String(20), nullable=True)
     date_added = db.Column(db.Date(), default=datetime.now)
     date_updated = db.Column(db.DateTime(), default=datetime.utcnow)
 
-    user = db.relationship('User', back_populates='data_points')
-    job = db.relationship('Job', back_populates='events')
+    # job = db.relationship('Job', back_populates='events')
 
-    # def __init__(self, job_id):
-    #     self.job_id = job_id
-    #     self.user_phone = user_phone
-    #     self.msg_type = msg_type
-    #     self.msg_txt = msg_txt
-    #     self.msg_sid = msg_sid
-    #     self.status = status
-    #     self.err_cd = err_cd
-    #     self.err_msg = err_msg
 
     def __repr__(self):
-        return f'<User Name: {self.user.username}, Phone #: {self.user_phone}, Msg Text: {self.msg_body}>'
+        return f'<Phone #: {self.user_phone}, Msg Text: {self.msg_body}>'
+
 
 def connect_to_db(app):
     """Connect the database to app."""
 
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///textstoself'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
     db.app = app
     db.init_app(app)
 
@@ -102,12 +97,31 @@ if __name__ == "__main__":
 
     db.create_all()
 
-    # melissa = User(username=env.USERNAME, phone=env.ADMIN_PHONE, password=env.PASSWORD)
-    # melissa_job = Job(user_id=1, active=False, msg_txt=env.MSG)
 
-    # db.session.add(melissa)
-    # db.session.add(melissa_job)
-    # db.session.commit()
+
+    melissa = User(username='Melissa', password=env.PASSWORD)
+    melissa_job = Job(user_id=1, active=True, phone=env.ADMIN_PHONE, msg_txt='What level anxiety were you at today?')
+
+    melissa_out = Event(msg_sid='SMc2b76fff5a4b4077b60454c7de369687',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='outgoing', msg_body='What was your anxiety level today? Scale [1 - 10]', msg_status='queued')
+    melissa_in = Event(msg_sid='SMe78b674b4fc3477d3b2391707a11e94f',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='incoming', msg_body='10', msg_status='received')
+    melissa_out1 = Event(msg_sid='SMc2b76fff5a4b4077b60454c7de369686',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='outgoing', msg_body='What was your anxiety level today? Scale [1 - 10]', msg_status='queued', date_added='2019-04-13', date_updated='2019-04-13 02:43:30.877975')
+    melissa_in1 = Event(msg_sid='SMe78b674b4fc3477d3b2391707a11e94e',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='incoming', msg_body='4', msg_status='received', date_added='2019-04-13', date_updated='2019-04-13 02:43:30.877975')
+    melissa_out2 = Event(msg_sid='SMc2b76fff5a4b4077b60454c7de369685',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='outgoing', msg_body='What was your anxiety level today? Scale [1 - 10]', msg_status='queued', date_added='2019-04-14', date_updated='2019-04-14 02:43:30.877975')
+    melissa_in2 = Event(msg_sid='SMe78b674b4fc3477d3b2391707a11e94d',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='incoming', msg_body='6', msg_status='received', date_added='2019-04-14', date_updated='2019-04-14 02:43:30.877975')
+    melissa_out3 = Event(msg_sid='SMc2b76fff5a4b4077b60454c7de369684',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='outgoing', msg_body='What was your anxiety level today? Scale [1 - 10]', msg_status='queued', date_added='2019-04-15', date_updated='2019-04-15 02:43:30.877975')
+    melissa_in3 = Event(msg_sid='SMe78b674b4fc3477d3b2391707a11e94c',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='incoming', msg_body='4', msg_status='received', date_added='2019-04-15', date_updated='2019-04-15 02:43:30.877975')
+
+    db.session.add(melissa)
+    db.session.add(melissa_job)
+    db.session.add(melissa_out)
+    db.session.add(melissa_in)
+    db.session.add(melissa_out1)
+    db.session.add(melissa_in1)
+    db.session.add(melissa_out2)
+    db.session.add(melissa_in2)
+    db.session.add(melissa_out3)
+    db.session.add(melissa_in3)
+    db.session.commit()
 
 
 

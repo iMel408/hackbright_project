@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+
+  <h2>User Profile: {{ user.username }}</h2>
+
+
+
+  {% if job %} 
+
+  <h3>Job:</h3>
+
+
+    <ul>
+      <li>Active: <b>{{ job.active }}</b> <br> Runs <b>{{ job.frequency }} </b> at <b> {{ job.time }} </b>   </li>
+    </ul>
+
+  {% endif %}
+
+  {% if events %}
+
+    <h3>Log:</h3>
+
+    {% for event in events %}
+
+    <ul>
+      <li>Date:<b>{{ event.date_added }} </b> Value: <b> {{ event.msg_body }} </b> </li>
+    </ul>
+    {% endfor %}
+
+
+  {% endif %}
+
+{% endblock %}
+
