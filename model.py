@@ -26,10 +26,10 @@ class User(db.Model):
     # def __init__(self, username, password):
     #     self.username = username
     #     self.password = password
- 
+    
 
-    def __repr__(self):
-        return f'<username: {self.username}>'
+    # def __repr__(self):
+    #     return f'<username: {self.username}>
 
 
 class Job(db.Model):
@@ -74,7 +74,6 @@ class Event(db.Model):
 
     # job = db.relationship('Job', back_populates='events')
 
-
     def __repr__(self):
         return f'<Phone #: {self.user_phone}, Msg Text: {self.msg_body}>'
 
@@ -99,29 +98,29 @@ if __name__ == "__main__":
 
 
 
-    melissa = User(username='Melissa', password=env.PASSWORD)
-    melissa_job = Job(user_id=1, active=True, phone=env.ADMIN_PHONE, msg_txt='What level anxiety were you at today?')
+    # melissa = User(username='Melissa', password=env.PASSWORD)
+    # melissa_job = Job(user_id=1, active=True, phone=env.ADMIN_PHONE, msg_txt='What level anxiety were you at today?')
 
-    melissa_out = Event(msg_sid='SMc2b76fff5a4b4077b60454c7de369687',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='outgoing', msg_body='What was your anxiety level today? Scale [1 - 10]', msg_status='queued')
-    melissa_in = Event(msg_sid='SMe78b674b4fc3477d3b2391707a11e94f',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='incoming', msg_body='10', msg_status='received')
-    melissa_out1 = Event(msg_sid='SMc2b76fff5a4b4077b60454c7de369686',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='outgoing', msg_body='What was your anxiety level today? Scale [1 - 10]', msg_status='queued', date_added='2019-04-13', date_updated='2019-04-13 02:43:30.877975')
-    melissa_in1 = Event(msg_sid='SMe78b674b4fc3477d3b2391707a11e94e',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='incoming', msg_body='4', msg_status='received', date_added='2019-04-13', date_updated='2019-04-13 02:43:30.877975')
-    melissa_out2 = Event(msg_sid='SMc2b76fff5a4b4077b60454c7de369685',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='outgoing', msg_body='What was your anxiety level today? Scale [1 - 10]', msg_status='queued', date_added='2019-04-14', date_updated='2019-04-14 02:43:30.877975')
-    melissa_in2 = Event(msg_sid='SMe78b674b4fc3477d3b2391707a11e94d',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='incoming', msg_body='6', msg_status='received', date_added='2019-04-14', date_updated='2019-04-14 02:43:30.877975')
-    melissa_out3 = Event(msg_sid='SMc2b76fff5a4b4077b60454c7de369684',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='outgoing', msg_body='What was your anxiety level today? Scale [1 - 10]', msg_status='queued', date_added='2019-04-15', date_updated='2019-04-15 02:43:30.877975')
-    melissa_in3 = Event(msg_sid='SMe78b674b4fc3477d3b2391707a11e94c',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='incoming', msg_body='4', msg_status='received', date_added='2019-04-15', date_updated='2019-04-15 02:43:30.877975')
+    # melissa_out = Event(msg_sid='SMc2b76fff5a4b4077b60454c7de369687',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='outgoing', msg_body='What was your anxiety level today? Scale [1 - 10]', msg_status='queued')
+    # melissa_in = Event(msg_sid='SMe78b674b4fc3477d3b2391707a11e94f',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='incoming', msg_body='10', msg_status='received')
+    # melissa_out1 = Event(msg_sid='SMc2b76fff5a4b4077b60454c7de369686',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='outgoing', msg_body='What was your anxiety level today? Scale [1 - 10]', msg_status='queued', date_added='2019-04-13', date_updated='2019-04-13 02:43:30.877975')
+    # melissa_in1 = Event(msg_sid='SMe78b674b4fc3477d3b2391707a11e94e',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='incoming', msg_body='4', msg_status='received', date_added='2019-04-13', date_updated='2019-04-13 02:43:30.877975')
+    # melissa_out2 = Event(msg_sid='SMc2b76fff5a4b4077b60454c7de369685',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='outgoing', msg_body='What was your anxiety level today? Scale [1 - 10]', msg_status='queued', date_added='2019-04-14', date_updated='2019-04-14 02:43:30.877975')
+    # melissa_in2 = Event(msg_sid='SMe78b674b4fc3477d3b2391707a11e94d',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='incoming', msg_body='6', msg_status='received', date_added='2019-04-14', date_updated='2019-04-14 02:43:30.877975')
+    # melissa_out3 = Event(msg_sid='SMc2b76fff5a4b4077b60454c7de369684',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='outgoing', msg_body='What was your anxiety level today? Scale [1 - 10]', msg_status='queued', date_added='2019-04-15', date_updated='2019-04-15 02:43:30.877975')
+    # melissa_in3 = Event(msg_sid='SMe78b674b4fc3477d3b2391707a11e94c',job_id=1, user_phone=env.ADMIN_PHONE, msg_type='incoming', msg_body='4', msg_status='received', date_added='2019-04-15', date_updated='2019-04-15 02:43:30.877975')
 
-    db.session.add(melissa)
-    db.session.add(melissa_job)
-    db.session.add(melissa_out)
-    db.session.add(melissa_in)
-    db.session.add(melissa_out1)
-    db.session.add(melissa_in1)
-    db.session.add(melissa_out2)
-    db.session.add(melissa_in2)
-    db.session.add(melissa_out3)
-    db.session.add(melissa_in3)
-    db.session.commit()
+    # db.session.add(melissa)
+    # db.session.add(melissa_job)
+    # db.session.add(melissa_out)
+    # db.session.add(melissa_in)
+    # db.session.add(melissa_out1)
+    # db.session.add(melissa_in1)
+    # db.session.add(melissa_out2)
+    # db.session.add(melissa_in2)
+    # db.session.add(melissa_out3)
+    # db.session.add(melissa_in3)
+    # db.session.commit()
 
 
 
