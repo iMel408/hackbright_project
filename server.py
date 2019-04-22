@@ -154,7 +154,8 @@ def send_sms(from_, to, body=env.MSG):
         job_id = '1'
         msg_sid=message.sid
         user_phone=message.to
-        msg_body=message.body
+        body=message.body
+        msg_body = body.replace('Sent from your Twilio trial account - ','')
         msg_status=message.status
 
 ##########
@@ -162,7 +163,7 @@ def send_sms(from_, to, body=env.MSG):
             job_id=job_id,
             msg_sid=msg_sid,
             user_phone=user_phone,
-            msg_body=msg_body[38:],
+            msg_body=msg_body,
             msg_status=msg_status
         )
 
