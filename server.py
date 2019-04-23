@@ -13,45 +13,106 @@ from jinja2 import StrictUndefined
 from werkzeug.security import check_password_hash, generate_password_hash
 # from chart import make_chart
 from tasks import make_celery
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 
 app = Flask(__name__)
 app.secret_key = env.SECRET_KEY
+
 app.config.update(
     CELERY_BROKER_URL='redis://localhost:6379',
     CELERY_RESULT_BACKEND='redis://localhost:6379',
     CELERYBEAT_SCHEDULE = {
-        'run_every_60sec': {
-            'task': 'server.print_hello',
-            'schedule': timedelta(seconds=60)
+        'run_every_min': {
+            'task': 'server.run_jobs',
+            'schedule': timedelta(seconds=60*60)
         },
     }
 )
 
 celery = make_celery(app)
 
-# @celery.task()
-# def add_together(a, b):
-#     return a + b
 
 @celery.task()
-def print_hello():
+def run_jobs():
+    """send sms messages due for current hour"""
 
-    return 'It\'s working!'
+    now = datetime.now()
+    print(now.hour)
+    tasks_due = Job.query.filter_by(time=str(now.hour)+':00').all()
 
-# @app.route('/')
-# def home():
-#     result = add_together.delay(10, 20)
-#     print(result.wait())
-#     return 'Welcome to my app!'
+    for task in tasks_due:
 
-@app.route('/')
-def home():
-    result = print_hello()
-    print(result)
-    return result
+        print(task.user.username,task.phone, task.msg_txt)
+        send_sms(to=task.phone, body=task.msg_txt, from_=env.FROM_PHONE)
 
+CLIENT = Client(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN)
+
+
+@app.route('/outgoing', methods=['GET', 'POST'])
+def send_sms(to, body, from_=env.FROM_PHONE):
+    """create sms event"""
+
+    with app.app_context():
+        db.init_app(app)
+
+        message = CLIENT.messages.create(
+            to=to,
+            from_=from_,
+            body=body
+        )
+
+        msg_type='outbound'
+        job_id = '1'
+        msg_sid=message.sid
+        user_phone=message.to
+        body=message.body
+        msg_body = body.replace('Sent from your Twilio trial account - ','')
+        msg_status=message.status
+
+
+        new_event = Event(msg_type=msg_type,
+            job_id=job_id,
+            msg_sid=msg_sid,
+            user_phone=user_phone,
+            msg_body=msg_body,
+            msg_status=msg_status
+        )
+
+        db.session.add(new_event)
+        db.session.commit()
+
+    return 
+
+
+@app.route("/incoming", methods=['GET', 'POST'])
+def receive_reply():
+    """Respond to incoming messages with a friendly SMS."""
+
+    msg_type = 'inbound'
+    job_id=1
+    msg_sid = request.values.get('MessageSid')
+    user_phone = request.values.get('From')
+    msg_body = request.values.get('Body')
+    msg_status = request.values.get('SmsStatus')
+
+    new_reply = Event(msg_type=msg_type,
+        job_id=job_id,
+        msg_sid=msg_sid,
+        user_phone=user_phone,
+        msg_body=msg_body,
+        msg_status=msg_status
+    )
+
+    db.session.add(new_reply)
+    db.session.commit()
+
+    resp = MessagingResponse()
+    resp.message("Your response has been logged.")
+
+    print(resp)
+
+    return str(resp)
 
 
 @app.route('/')
@@ -133,74 +194,6 @@ def user_page(id):
         return render_template('user.html',user=user,job=job,events=events)
 
     return render_template('user.html',user=user)
-
-
-CLIENT = Client(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN)
-
-
-@app.route('/outgoing', methods=['GET', 'POST'])
-def send_sms(from_, to, body=env.MSG):
-
-    with app.app_context():
-        db.init_app(app)
-
-        message = CLIENT.messages.create(
-            from_=from_,
-            to=to,
-            body=body
-        )
-###########
-        msg_type='outbound'
-        job_id = '1'
-        msg_sid=message.sid
-        user_phone=message.to
-        body=message.body
-        msg_body = body.replace('Sent from your Twilio trial account - ','')
-        msg_status=message.status
-
-##########
-        new_prompt = Event(msg_type=msg_type,
-            job_id=job_id,
-            msg_sid=msg_sid,
-            user_phone=user_phone,
-            msg_body=msg_body,
-            msg_status=msg_status
-        )
-
-        db.session.add(new_prompt)
-        db.session.commit()
-
-    return
-
-
-@app.route("/incoming", methods=['GET', 'POST'])
-def receive_reply():
-    """Respond to incoming messages with a friendly SMS."""
-
-    msg_type = 'inbound'
-    job_id=1
-    msg_sid = request.values.get('MessageSid')
-    user_phone = request.values.get('From')
-    msg_body = request.values.get('Body')
-    msg_status = request.values.get('SmsStatus')
-
-    new_reply = Event(msg_type=msg_type,
-        job_id=job_id,
-        msg_sid=msg_sid,
-        user_phone=user_phone,
-        msg_body=msg_body,
-        msg_status=msg_status
-    )
-
-    db.session.add(new_reply)
-    db.session.commit()
-
-    resp = MessagingResponse()
-    resp.message("Your response has been logged.")
-
-    print(resp)
-
-    return str(resp)
 
 
 
