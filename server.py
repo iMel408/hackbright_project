@@ -38,16 +38,24 @@ def run_jobs():
     """send sms messages due for current hour"""
 
     now = datetime.now()
-    print("Curr Hour:",now.hour)
+    print("Current Hour:",now.hour)
+
+    # task_list = []
     tasks_due = Job.query.filter_by(time=str(now.hour)+':00').all()
+    # user_id = session.get('user_id', '')
 
     for task in tasks_due:
 
         print("Username:",task.user.username,"User Phone:",task.phone, "User Msg:", task.msg_txt)
-        send_sms(to=task.phone, body=task.msg_txt, from_=env.FROM_PHONE)
+
+        to = task.phone
+        body = task.msg_txt
+        send_sms(to,body)
+
+    return None
+
 
 CLIENT = Client(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN)
-
 
 @app.route('/outgoing', methods=['GET', 'POST'])
 def send_sms(to, body, from_=env.FROM_PHONE):
@@ -67,7 +75,7 @@ def send_sms(to, body, from_=env.FROM_PHONE):
         msg_sid=message.sid
         user_phone=message.to
         body=message.body
-        msg_body = body.replace('Sent from your Twilio trial account - ','')
+        msg_body=body.replace('Sent from your Twilio trial account - ','')
         msg_status=message.status
 
 
@@ -82,7 +90,8 @@ def send_sms(to, body, from_=env.FROM_PHONE):
         db.session.add(new_event)
         db.session.commit()
 
-    return 
+
+        return 
 
 
 @app.route("/incoming", methods=['GET', 'POST'])
@@ -90,7 +99,7 @@ def receive_reply():
     """Respond to incoming messages with a friendly SMS."""
 
     msg_type = 'inbound'
-    job_id=1
+    job_id='1'
     msg_sid = request.values.get('MessageSid')
     user_phone = request.values.get('From')
     msg_body = request.values.get('Body')
@@ -205,5 +214,5 @@ if __name__ == "__main__":
 
     # DebugToolbarExtension(app)
 
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0',threaded=True)
 

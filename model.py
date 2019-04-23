@@ -50,8 +50,8 @@ class Job(db.Model):
     # user = db.relationship('User', back_populates='job')
     # events = db.relationship('Event', back_populates = 'job')
 
-    user = db.relationship('User', backref=db.backref('jobs', order_by=id))
-    events = db.relationship('Event', backref=db.backref('jobs', order_by=id))
+    user = db.relationship('User', backref=db.backref('jobs', order_by=id), lazy='subquery')
+    events = db.relationship('Event', backref=db.backref('jobs', order_by=id), lazy='subquery')
 
     def __repr__(self):
         return f'<User Name: {self.user.username}, Job ID: {self.id}, Active: {self.active}>'
