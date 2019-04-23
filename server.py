@@ -41,16 +41,20 @@ def run_jobs():
     print("Current Hour:",now.hour)
 
     # task_list = []
-    tasks_due = Job.query.filter_by(time=str(now.hour)+':00').all()
+    jobs_due = Job.query.filter_by(time=str(now.hour)+':00').all()
     # user_id = session.get('user_id', '')
+    print(jobs_due)
 
-    for task in tasks_due:
+    for job in jobs_due:
 
-        print("Username:",task.user.username,"User Phone:",task.phone, "User Msg:", task.msg_txt)
+        print("Username:",job.user.username,"User Phone:",job.phone, "User Msg:", job.msg_txt)
 
-        to = task.phone
-        body = task.msg_txt
-        send_sms(to,body)
+        job_id = job.id
+        to = job.phone
+        body = job.msg_txt
+
+        print(job_id,to,body)
+        send_sms(to,body,job_id)
 
     return None
 
@@ -58,7 +62,7 @@ def run_jobs():
 CLIENT = Client(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN)
 
 @app.route('/outgoing', methods=['GET', 'POST'])
-def send_sms(to, body, from_=env.FROM_PHONE):
+def send_sms(to, body, job_id, from_=env.FROM_PHONE):
     """create sms event"""
 
     with app.app_context():
@@ -71,7 +75,7 @@ def send_sms(to, body, from_=env.FROM_PHONE):
         )
 
         msg_type='outbound'
-        job_id = '1'
+        job_id=job_id
         msg_sid=message.sid
         user_phone=message.to
         body=message.body
