@@ -38,12 +38,12 @@ def run_jobs():
     """send sms messages due for current hour"""
 
     now = datetime.now()
-    print(now.hour)
+    print("Curr Hour:",now.hour)
     tasks_due = Job.query.filter_by(time=str(now.hour)+':00').all()
 
     for task in tasks_due:
 
-        print(task.user.username,task.phone, task.msg_txt)
+        print("Username:",task.user.username,"User Phone:",task.phone, "User Msg:", task.msg_txt)
         send_sms(to=task.phone, body=task.msg_txt, from_=env.FROM_PHONE)
 
 CLIENT = Client(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN)
