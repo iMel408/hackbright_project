@@ -7,8 +7,8 @@ from tasks import make_celery
 from datetime import timedelta, datetime
 import logging
 
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-logging.basicConfig(level=logging.INFO)
+# logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+# logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.secret_key = env.SECRET_KEY
@@ -16,15 +16,21 @@ app.secret_key = env.SECRET_KEY
 app.config.update(
     CELERY_BROKER_URL='redis://localhost:6379',
     CELERY_RESULT_BACKEND='redis://localhost:6379',
-    CELERYBEAT_SCHEDULE={
-        'run_every_min': {
+    CELERYBEAT_SCHEDULE = {
+        'run_every_60sec': {
             'task': 'server.run_jobs',
-            'schedule': timedelta(seconds=60*5)
+            'schedule': timedelta(seconds=60)
         },
     }
 )
 
 celery = make_celery(app)
+
+
+# @celery.task()
+# def print_hello():
+
+#      return "It's working!"
 
 
 @celery.task()
@@ -48,10 +54,9 @@ def run_jobs():
             job_id = job.id
             to = job.phone
             body = job.msg_txt
-            # print(job)
             
             send_sms(to, body, job_id)
-            print(to, body, job_id)
+            # print(to, body, job_id)
             print(job.phone, job.msg_txt, job.id)
             # send_sms(job.phone, job.msg_txt, job.id)
 
