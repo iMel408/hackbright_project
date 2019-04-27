@@ -5,6 +5,7 @@ from twilio.twiml.messaging_response import Body, Message, Redirect, MessagingRe
 from model import connect_to_db, db, User, Job, Event
 from tasks import make_celery
 from datetime import timedelta, datetime
+from werkzeug.security import check_password_hash,generate_password_hash
 import logging
 
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
@@ -135,18 +136,30 @@ def reg_form():
     return render_template('register.html')
 
 
-@app.route('/register', methods=['POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def reg_process():
-    username = request.form['username']
-    password = request.form['password']
 
-    new_user = User(username=username, password=password)
+    if request.method == 'POST':
 
-    db.session.add(new_user)
-    db.session.commit()
+        username = request.form['username']
+        password = request.form['password']
+        error = None
 
-    flash(f'User {username} added.')
-    return redirect('/login')
+        if User.query.filter_by(username=username).first() is not None:
+            error = 'This username already exists!'
+
+        if error is None:
+
+            new_user = User(username=username, password=generate_password_hash(password, method='sha256'))
+            db.session.add(new_user)
+            db.session.commit()
+
+            flash(f'User {username} added.')
+            return redirect('/login')
+
+        flash(error)
+
+    return render_template('register.html')
 
 
 @app.route('/login', methods=['GET'])
@@ -156,30 +169,37 @@ def login_form():
 
 @app.route('/login', methods=['POST'])
 def login_process():
-    username = request.form['username']
-    password = request.form['password']
 
-    user = User.query.filter_by(username=username).first()
+    if request.method == 'POST':
 
-    if not user:
-        flash("no such user")
-        return redirect('/login')
+        username = request.form['username']
+        password = request.form['password']
+        error = None
+        user = User.query.filter_by(username=username).first()
 
-    if user.password != password:
-        flash('incorrect password')
-        return redirect('/login')
+        if user is None:
+            error = 'Incorrect Username'
+        elif not check_password_hash(user.password, password):
+            error = 'Incorrect Password'
 
-    session['id'] = user.id
+        if error is None:
+            session.clear()
+            session['id'] = user.id
+            flash('Logged In')
+            return redirect(f'/user/{user.id}')
 
-    flash('Logged In')
-    return redirect(f'/user/{user.id}')
+        flash(error)
+
+    return render_template('login.html')
+
 
 
 @app.route('/logout')
 def logout():
-    del (session['id'])
+
+    session.clear()
     flash('Logged out')
-    print(session)
+
     return redirect('/')
 
 
