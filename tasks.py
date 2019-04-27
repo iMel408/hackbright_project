@@ -1,5 +1,6 @@
 from celery import Celery
-from model import connect_to_db, db
+from model import connect_to_db
+
 
 def make_celery(app):
     celery = Celery(

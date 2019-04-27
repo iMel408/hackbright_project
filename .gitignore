@@ -9,3 +9,9 @@ __pychache_
 scratch_pad.py
 seed.py
 callback_received_sample
+.idea/
+.idea/dataSources.local.xml
+.idea/dataSources/
+.idea/inspectionProfiles/
+.idea/workspace.xml
+celerybeat.pid

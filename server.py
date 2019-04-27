@@ -16,22 +16,15 @@ app.secret_key = env.SECRET_KEY
 app.config.update(
     CELERY_BROKER_URL='redis://localhost:6379',
     CELERY_RESULT_BACKEND='redis://localhost:6379',
-    CELERYBEAT_SCHEDULE = {
-        'run_every_60sec': {
+    CELERYBEAT_SCHEDULE={
+        'run_every_hour': {
             'task': 'server.run_jobs',
-            'schedule': timedelta(seconds=60)
+            'schedule': timedelta(seconds=60*60)
         },
     }
 )
 
 celery = make_celery(app)
-
-
-# @celery.task()
-# def print_hello():
-
-#      return "It's working!"
-
 
 @celery.task()
 def run_jobs():
@@ -42,28 +35,32 @@ def run_jobs():
 
         now = datetime.now()
         print("Current Hour:", now.hour)
-        jobs_due = Job.query.filter_by(time=str(now.hour) + ':00').all()
+        jobs_due = Job.query.filter_by(time=str(now.hour) + ':00').all() #TODO filter out inactive after testing is done
 
         # jobs_due = session.query(Job).filter_by(time=str(now.hour)+':00').options(joinedload('*')).all()
 
         print(jobs_due)
  
         for job in jobs_due:
-            print("Username:", job.user.username, "User Phone:", job.phone, "User Msg:", job.msg_txt)
 
-            job_id = job.id
-            to = job.phone
-            body = job.msg_txt
-            
-            send_sms(to, body, job_id)
-            # print(to, body, job_id)
-            print(job.phone, job.msg_txt, job.id)
-            # send_sms(job.phone, job.msg_txt, job.id)
+            print("User:", job.user.username, "User Phone:", job.phone, "User Msg:", job.msg_txt, "Status:", job.active)
+
+            if job.active:
+
+                job_id = job.id
+                to = job.phone
+                body = job.msg_txt
+
+                send_sms(to, body, job_id)
+                # print(to, body, job_id)
+                print("Sending:",job.phone, job.msg_txt, job.id)
+                # send_sms(job.phone, job.msg_txt, job.id)
 
         db.session.commit()
 
 
 CLIENT = Client(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN)
+
 
 @app.route('/outgoing', methods=['GET', 'POST'])
 def send_sms(to, body, job_id, from_=env.FROM_PHONE):
