@@ -5,7 +5,7 @@ from twilio.twiml.messaging_response import Body, Message, Redirect, MessagingRe
 from model import connect_to_db, db, User, Job, Event
 from tasks import make_celery
 from datetime import timedelta, datetime
-from werkzeug.security import check_password_hash,generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 import logging
 
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
@@ -20,12 +20,13 @@ app.config.update(
     CELERYBEAT_SCHEDULE={
         'run_every_hour': {
             'task': 'server.run_jobs',
-            'schedule': timedelta(seconds=60*60)
+            'schedule': timedelta(seconds=60 * 60)
         },
     }
 )
 
 celery = make_celery(app)
+
 
 @celery.task()
 def run_jobs():
@@ -36,25 +37,25 @@ def run_jobs():
 
         now = datetime.now()
         print("Current Hour:", now.hour)
-        jobs_due = Job.query.filter_by(time=str(now.hour) + ':00').all() #TODO filter out inactive after testing is done
+        jobs_due = Job.query.filter_by(
+            time=str(now.hour) + ':00').all()  # TODO filter out inactive after testing is done
 
         # jobs_due = session.query(Job).filter_by(time=str(now.hour)+':00').options(joinedload('*')).all()
 
         print(jobs_due)
- 
+
         for job in jobs_due:
 
             print("User:", job.user.username, "User Phone:", job.phone, "User Msg:", job.msg_txt, "Status:", job.active)
 
             if job.active:
-
                 job_id = job.id
                 to = job.phone
                 body = job.msg_txt
 
                 send_sms(to, body, job_id)
                 # print(to, body, job_id)
-                print("Sending:",job.phone, job.msg_txt, job.id)
+                print("Sending:", job.phone, job.msg_txt, job.id)
                 # send_sms(job.phone, job.msg_txt, job.id)
 
         db.session.commit()
@@ -82,13 +83,13 @@ def send_sms(to, body, job_id, from_=env.FROM_PHONE):
     msg_status = message.status
 
     new_event = Event(
-                        msg_type=msg_type,
-                        job_id=job_id,
-                        msg_sid=msg_sid,
-                        user_phone=user_phone,
-                        msg_body=msg_body,
-                        msg_status=msg_status
-                    )
+        msg_type=msg_type,
+        job_id=job_id,
+        msg_sid=msg_sid,
+        user_phone=user_phone,
+        msg_body=msg_body,
+        msg_status=msg_status
+    )
 
     db.session.add(new_event)
 
@@ -107,13 +108,13 @@ def receive_reply():
     msg_status = request.values.get('SmsStatus')
 
     new_reply = Event(
-                        msg_type=msg_type,
-                        job_id=job_id,
-                        msg_sid=msg_sid,
-                        user_phone=user_phone,
-                        msg_body=msg_body,
-                        msg_status=msg_status
-                    )
+        msg_type=msg_type,
+        job_id=job_id,
+        msg_sid=msg_sid,
+        user_phone=user_phone,
+        msg_body=msg_body,
+        msg_status=msg_status
+    )
 
     db.session.add(new_reply)
     db.session.commit()
@@ -138,7 +139,6 @@ def reg_form():
 
 @app.route('/register', methods=['GET', 'POST'])
 def reg_process():
-
     if request.method == 'POST':
 
         username = request.form['username']
@@ -149,7 +149,6 @@ def reg_process():
             error = 'This username already exists!'
 
         if error is None:
-
             new_user = User(username=username, password=generate_password_hash(password, method='sha256'))
             db.session.add(new_user)
             db.session.commit()
@@ -169,7 +168,6 @@ def login_form():
 
 @app.route('/login', methods=['POST'])
 def login_process():
-
     if request.method == 'POST':
 
         username = request.form['username']
@@ -193,7 +191,6 @@ def login_process():
     return render_template('login.html')
 
 
-
 @app.route('/logout')
 def logout():
 
@@ -208,7 +205,6 @@ def user_page(id):
     """show user page/info"""
 
     user = User.query.get(id)
-
     job = Job.query.filter_by(user=user).first()
 
     if job:
@@ -216,8 +212,135 @@ def user_page(id):
 
         return render_template('user.html', user=user, job=job, events=events)
 
+
     return render_template('user.html', user=user)
 
+
+@app.route('/jobs', methods=['GET'])
+def jobs_page(id):
+
+    user = User.query.get(id)
+    # active_job = Job.query.filter_by(user=user, active=True).first()
+    # inactive_jobs = Job.query.filter_by(user=user, active=False).all()
+    session['id'] = user.id
+    # return render_template('jobs.html',
+    #     user=user,
+    #     active_job=active_job,
+    #     inactive_jobs=inactive_jobs
+    # )
+    return render_template('jobs.html', user=user)
+
+
+
+# @app.route('/jobs/<int:id>')
+# def jobs_page(id):
+#
+#     user = User.query.get(id)
+#     active_job = Job.query.filter_by(user=user, active=True).first()
+#     inactive_jobs = Job.query.filter_by(user=user, active=False).all()
+#
+#     return render_template('jobs.html',
+#         user=user,
+#         active_job=active_job,
+#         inactive_jobs=inactive_jobs
+#     )
+
+
+@app.route('/jobs', methods=['GET', 'POST'])
+def job_setup():
+
+    if request.method == 'POST':
+
+        phone = request.form['phone']
+        msg_txt = request.form['msg_txt']
+        frequency = request.form['frequency']
+        time = request.form['time']
+        active = request.form['active']
+        error = None
+
+        if not time:
+            error = 'Time Preference is Required!'
+
+        if error is not None:
+            flash(error)
+        else:
+            new_job = Job(
+                phone=phone,
+                msg_txt=msg_txt,
+                frequency=frequency,
+                time=time,
+                active=active
+            )
+
+            db.session.add(new_job)
+            db.session.commit()
+
+        flash(f'Job for {username} added.')
+
+    return render_template('jobs.html', user=user, frequency_list=frequency_list, msg_txt_list=msg_txt_list)
+
+    # return render_template('jobs.html', )
+
+
+# @app.route('/jobs/<int:id>')
+# def job_setup():
+#
+#     user = User.query.get(id)
+#     frequency_list = ['hourly', 'daily', 'weekly']
+#     msg_txt_list = ['What was your anxiety level today?', 'What level anxiety were you at today?']
+#
+#     if request.method == 'POST':
+#         msg_txt = request.form['msg_txt']
+#         frequency = request.form['frequency']
+#         time = request.form['time']
+#         active = request.form['active']
+#         error = None
+#
+#         if not time:
+#             error = 'Time Preference is Required!'
+#
+#         if error is not None:
+#             flash(error)
+#         else:
+#             new_job = Job(msg_txt=msg_txt,
+#                           frequency=frequency,
+#                           time=time,
+#                           active=active)
+#
+#             db.session.add(new_job)
+#             db.session.commit()
+#
+#         flash(f'Job for {username} added.')
+#
+#     return render_template('user.html', user=user,  frequency_list=frequency_list, msg_txt_list=msg_txt_list)
+
+
+# @app.route('/job_update', methods=['GET', 'POST'])
+# def job_update():
+#
+#     user = User.query.get(id)
+#     job = Job.query.filter_by(user=user).first()
+#
+#     if request.method == 'POST':
+#         job.msg_txt = request.form['msg_txt']
+#         job.frequency = request.form['frequency']
+#         job.time = request.form['time']
+#         job.active = request.form['active']
+#         error = None
+#
+#         if not job.time:
+#             error = 'Time Preference is Required!'
+#
+#         if error is not None:
+#             flash(error)
+#         else:
+#             new_job = Job(msg_txt=job.msg_txt, frequency=job.frequency, time=job.time, active=job.active)
+#             db.session.add(new_job)
+#             db.session.commit()
+#
+#         flash(f'Job for {username} added.')
+#
+#     return render_template('user.html', user=user)
 
 # def test_func():
 #     # query the db

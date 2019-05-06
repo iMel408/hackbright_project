@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% block content %}
-
   <h2>User Profile: {{ user.username }}</h2>
 
 
@@ -13,8 +12,36 @@
     <ul>
       <li>Active: <b>{{ job.active }}</b> <br> Runs <b>{{ job.frequency }} </b> at <b> {{ job.time }} </b>   </li>
     </ul>
+    <form method="POST">
+        <label for="frequency">Frequency</label>
+        <input name="option" id="frequency" value="{{ request.form['frequency'] }}" required>
+        <label for="frequency">Time</label>
+        <input name="option" id="time" value="{{ request.form['time'] }}" required>
+        <label for="msg_txt">Message Text</label>
+        <textarea name="body" id="msg_txt">{{ request.form['msg_txt'] }}</textarea>
+        <label for="active">Status</label>
+        <input name="option" id="active" value="{{ request.form['active'] }}" required>
+        <input type="submit" value="Save"></form>
+      <p><a href="/jobs">Update</a></p>
+
 
   {% endif %}
+
+
+          <h2>Option selector</h2>
+        <h3><table><form action="" method="POST">
+          <td>
+          <label>Frequency :</label>
+            <select name="option" width="300px">
+            {% for x in frequency_list %}
+            <option value="{{ x.option }}" SELECTED>{{ x.option }}</option>
+            {% endfor %}
+            </select>
+          </td>
+
+        </form></table></h3>
+
+
 
   {% if events %}
 
@@ -30,4 +57,3 @@
   {% endif %}
 
 {% endblock %}
-
