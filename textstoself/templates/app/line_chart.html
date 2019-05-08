@@ -1,30 +1,16 @@
 {% extends 'base.html' %}
 {% block content %}
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js'></script>
+</head>
 
-  <h2>User Profile: {{ user.username }}</h2>
+<body>
+    <h1>{{ title }}</h1>
 
-
-  {% if job %}
-
-  <h3>Active Job:</h3>
-
-
-    <ul>
-      <li> Runs <b>{{ job.frequency }} </b> at <b> {{ job.time }} </b>  <a href="app/jobs">Update</a> </li>
-
-{#      <li> Runs <b>{{ job.frequency }} </b> at <b> {{ job.time }} </b>  <a href="{{  url_for('app.jobs') }}">Update</a> </li>#}
-    </ul>
-
-
-  {% endif %}
-
-  {% if events %}
-
-<canvas id="chart" width="900" height="400"></canvas>
+    <canvas id="chart" width="600" height="400"></canvas>
     <script>
+
       // bar chart data
-      let barData = {
+      var barData = {
         labels : [
           {% for item in labels %}
             "{{ item }}",
@@ -44,7 +30,7 @@
             {% endfor %}]
           }
 	]
-      };
+      }
       Chart.defaults.global.animationSteps = 50;
       Chart.defaults.global.tooltipYPadding = 16;
       Chart.defaults.global.tooltipCornerRadius = 0;
@@ -54,12 +40,14 @@
       Chart.defaults.global.responsive = false;
       Chart.defaults.global.scaleLineColor = "black";
       Chart.defaults.global.scaleFontSize = 16;
+
       // get bar chart canvas
-      let mychart = document.getElementById("chart").getContext("2d");
-      steps = 10;
-      max = {{ max }};
+      var mychart = document.getElementById("chart").getContext("2d");
+      steps = 10
+      max = {{ max }}
+
       // draw bar chart
-      let LineChart = new Chart(mychart).Line(barData, {
+      var LineChartDemo = new Chart(mychart).Line(barData, {
         scaleOverride: true,
         scaleSteps: steps,
         scaleStepWidth: Math.ceil(max / steps),
@@ -71,17 +59,5 @@
         bezierCurve: false,
       });
     </script>
-
-
-    <h3>Log:</h3>
-
-    {% for event in events %}
-
-    <ul>
-      <li>Date:<b>{{ event.date_added }} </b> Value: <b> {{ event.msg_body }} </b> </li>
-    </ul>
-    {% endfor %}
-
-  {% endif %}
-
-{% endblock %}
+</body>
+</html>

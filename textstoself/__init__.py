@@ -8,7 +8,7 @@ def create_app(test_config=None):
 
     app.config.from_mapping(
         # a default secret that should be overridden by instance config
-        SECRET_KEY='dev'
+        SECRET_KEY='5361237'
     ),
 
     if test_config is None:
