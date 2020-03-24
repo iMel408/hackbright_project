@@ -47,7 +47,7 @@ appnope==0.1.0
 attrs==19.1.0
 backcall==0.1.0
 billiard==3.6.0.0
-bleach==3.1.0
+bleach==3.1.2
 blinker==1.4
 bokeh==1.1.0
 celery==4.3.0
